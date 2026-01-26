@@ -24,5 +24,26 @@ Development follows a feature-based branching strategy to ensure clean history a
 ## Key Results
 The Logistic Regression model (72% recall) identified Monthly Income, Overtime, and Work-Life Balance as primary attrition drivers.
 
+---
+
+## Standards de Code et d'Expérimentation ML
+
+### 1. Standards de Code (Python)
+- **Formatage** : Le code doit suivre les conventions PEP 8. Utilisation de `ruff` pour le linting.
+- **Documentation** : Chaque fonction doit avoir un docstring détaillant entrées/sorties.
+- **Typage** : Utiliser les "type hints" pour la clarté.
+
+### 2. Standards de Test
+- **Couverture** : Fonctions critiques de `src/` testées via `pytest`.
+- **Exécution locale** : Les tests doivent passer avant tout push.
+
+### 3. Expérimentation ML
+- **Reproductibilité** : Utilisation stricte de `random_state` dans tous les modèles.
+- **Gestion des données** : Données brutes exclues de Git via `.gitignore`.
+
+### 4. Pipeline CI/CD
+- **Déploiement** : Automatique sur Hugging Face Spaces depuis la branche `main`.
+- **Secrets** : Utilisation du secret `HF_TOKEN` configuré sur GitHub.
+
 
 
