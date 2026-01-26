@@ -28,7 +28,7 @@ jobs:
         run: ruff check .
 
       - name: Run tests with pytest
-        run: pytest tests/
+        run: python -m pytest tests/
 
   deploy_to_huggingface:
     needs: test_and_lint
