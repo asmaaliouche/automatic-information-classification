@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 from src.processing import clean_columns
 
 def test_clean_columns():
