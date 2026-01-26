@@ -2,6 +2,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, fbeta_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+import joblib
+import os
 
 def split_data(X, y, test_size=0.2, random_state=42):
     """
@@ -56,3 +58,15 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     print(classification_report(y_test, y_pred_test, digits=3, zero_division=0))
 
     return results
+
+def save_model(model, preprocessor, path='models/model_pipeline.joblib'):
+    """Save model and preprocessor."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    joblib.dump({'model': model, 'preprocessor': preprocessor}, path)
+
+def load_model(path='models/model_pipeline.joblib'):
+    """Load model and preprocessor."""
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"No model found at {path}")
+    data = joblib.load(path)
+    return data['model'], data['preprocessor']

@@ -10,11 +10,22 @@ This project focuses on structuring a machine learning project and preparing it 
   - `notebook_1.ipynb`: Data cleaning & merging.
   - `notebook_2.ipynb`: Model training & evaluation.
 - `src/`: Core logic (`processing.py`, `modeling.py`, `visualization.py`).
+- `api/`: FastAPI server for model serving.
 
 ## Setup
+### Installation
 ```bash
 poetry install
+```
+
+### Running Notebooks
+```bash
 poetry run jupyter notebook
+```
+
+### Running the API
+```bash
+poetry run uvicorn api.main:app --reload
 ```
 
 ## Version Control
