@@ -1,9 +1,11 @@
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, fbeta_score
+import os
+
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-import joblib
-import os
+from sklearn.metrics import classification_report, confusion_matrix, fbeta_score
+from sklearn.model_selection import train_test_split
+
 
 def split_data(X, y, test_size=0.2, random_state=42):
     """
@@ -29,7 +31,7 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     """
     Evaluate model and print main metrics for both train and test sets.
     """
-    from sklearn.metrics import precision_score, recall_score, f1_score
+    from sklearn.metrics import f1_score, precision_score, recall_score
     
     # Predictions
     y_pred_train = model.predict(X_train)

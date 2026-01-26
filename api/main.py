@@ -1,8 +1,8 @@
+import pandas as pd
 from fastapi import FastAPI, HTTPException
+
 from src.api_schemas import EmployeeData, PredictionResponse
 from src.modeling import load_model
-import pandas as pd
-import os
 
 app = FastAPI(
     title="TechNova Attrition API",
