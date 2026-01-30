@@ -37,24 +37,24 @@ The Logistic Regression model (72% recall) identified Monthly Income, Overtime, 
 
 ---
 
-## Standards de Code et d'Expérimentation ML
+## Code and ML Experimentation Standards
 
-### 1. Standards de Code (Python)
-- **Formatage** : Le code doit suivre les conventions PEP 8. Utilisation de `ruff` pour le linting.
-- **Documentation** : Chaque fonction doit avoir un docstring détaillant entrées/sorties.
-- **Typage** : Utiliser les "type hints" pour la clarté.
+### 1. Code Standards (Python)
+- **Formatting**: Code must follow PEP 8 conventions. Use `ruff` for linting.
+- **Documentation**: Each function must have a docstring detailing inputs/outputs.
+- **Typing**: Use type hints for clarity.
 
-### 2. Standards de Test
-- **Couverture** : Fonctions critiques de `src/` testées via `pytest`.
-- **Exécution locale** : Les tests doivent passer avant tout push.
+### 2. Testing Standards
+- **Coverage**: Critical functions in `src/` tested via `pytest`.
+- **Local Execution**: Tests must pass before any push.
 
-### 3. Expérimentation ML
-- **Reproductibilité** : Utilisation stricte de `random_state` dans tous les modèles.
-- **Gestion des données** : Données brutes exclues de Git via `.gitignore`.
+### 3. ML Experimentation
+- **Reproducibility**: Strict use of `random_state` in all models.
+- **Data Management**: Raw data excluded from Git via `.gitignore`.
 
-### 4. Pipeline CI/CD
-- **Déploiement** : Automatique sur Hugging Face Spaces depuis la branche `main`.
-- **Secrets** : Utilisation du secret `HF_TOKEN` configuré sur GitHub.
+### 4. CI/CD Pipeline
+- **Deployment**: Automatic deployment to Hugging Face Spaces from the `main` branch.
+- **Secrets**: Use of `HF_TOKEN` secret configured on GitHub.
 
 
 
