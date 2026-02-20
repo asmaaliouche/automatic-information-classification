@@ -15,7 +15,6 @@ import pandas as pd
 from db.database import SessionLocal
 from db.models import Employee
 
-
 DATA_PATH = "data/combined_df.csv"
 
 
