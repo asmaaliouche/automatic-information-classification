@@ -28,6 +28,9 @@ def test_load_model_not_found():
     with pytest.raises(FileNotFoundError):
         load_model("non_existent_model.joblib")
 
+class DummyPreprocessor:
+    def transform(self, X): return X
+
 def test_save_and_load_model(tmp_path):
     """Test saving and then loading a model."""
     d = tmp_path / "models"
@@ -36,9 +39,6 @@ def test_save_and_load_model(tmp_path):
     
     # Create a dummy model and preprocessor
     model = RandomForestClassifier()
-    # Dummy preprocessor (just a mock or simple object)
-    class DummyPreprocessor:
-        def transform(self, X): return X
     
     preprocessor = DummyPreprocessor()
     
