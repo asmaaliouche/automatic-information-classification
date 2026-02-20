@@ -1,6 +1,11 @@
-import pandas as pd
-from fastapi import FastAPI, HTTPException
+import json
 
+import pandas as pd
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
+
+from db.database import get_db
+from db.models import Employee, Prediction
 from src.api_schemas import EmployeeData, PredictionResponse
 from src.modeling import load_model
 
@@ -15,6 +20,7 @@ MODEL = None
 PREPROCESSOR = None
 MODEL_PATH = 'models/model_pipeline.joblib'
 
+
 @app.on_event("startup")
 def startup_event():
     """Load model and preprocessor on startup."""
@@ -25,14 +31,106 @@ def startup_event():
     except Exception as e:
         print(f"❌ Error loading model: {e}")
 
+
 @app.get("/")
-def read_root():
-    if MODEL is None:
-        return {"status": "error", "message": "Model not loaded. Please export the model first."}
-    return {"status": "ok", "message": "TechNova API is live and model is loaded."}
+def read_root(db: Session = Depends(get_db)):
+    """Health check endpoint — verifies model and database status."""
+    model_ok = MODEL is not None and PREPROCESSOR is not None
+
+    # Check database connectivity
+    db_ok = False
+    try:
+        db.execute(
+            Employee.__table__.select().limit(1)
+        )
+        db_ok = True
+    except Exception:
+        pass
+
+    status = {
+        "model_loaded": model_ok,
+        "database_connected": db_ok,
+    }
+
+    if all(status.values()):
+        return {"status": "ok", "message": "TechNova API is live. Model and database are ready."}
+
+    error_messages = []
+    if not model_ok:
+        error_messages.append("Model not loaded")
+    if not db_ok:
+        error_messages.append("Database not connected")
+
+    return {"status": "error", "message": ". ".join(error_messages)}
+
+
+@app.get("/predict/{employee_id}", response_model=PredictionResponse)
+def predict_by_id(employee_id: int, db: Session = Depends(get_db)):
+    """
+    Make an attrition prediction for a single employee by their ID.
+    Reads the employee from the database and logs the prediction.
+    """
+    if MODEL is None or PREPROCESSOR is None:
+        raise HTTPException(status_code=503, detail="Model is not available.")
+
+    try:
+        # 1. Query employee from the database
+        employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
+
+        if employee is None:
+            raise HTTPException(
+                status_code=404, detail=f"Employee with ID {employee_id} not found."
+            )
+
+        # 2. Build a DataFrame from the database row (features only)
+        feature_cols = [
+            c.name for c in Employee.__table__.columns
+            if c.name not in ('id', 'a_quitte_l_entreprise', 'attrition_numeric')
+        ]
+        row_data = {col: getattr(employee, col) for col in feature_cols}
+
+        # Convert heure_supplementaires from string ("Oui"/"Non") to int (1/0)
+        ot_map = {'Oui': 1, 'Non': 0}
+        if row_data.get('heure_supplementaires') in ot_map:
+            row_data['heure_supplementaires'] = ot_map[row_data['heure_supplementaires']]
+
+        input_df = pd.DataFrame([row_data])
+
+        # 3. Transform and predict
+        X_processed = PREPROCESSOR.transform(input_df)
+        prediction = int(MODEL.predict(X_processed)[0])
+        probability = float(MODEL.predict_proba(X_processed)[0][1])
+
+        # 4. Log prediction to database
+        pred_log = Prediction(
+            employee_id=employee_id,
+            input_data=json.dumps(row_data, ensure_ascii=False, default=str),
+            prediction=prediction,
+            probability=probability,
+        )
+        db.add(pred_log)
+        db.commit()
+
+        return PredictionResponse(
+            prediction=prediction,
+            probability=probability,
+            status="success"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"An error occurred during prediction: {str(e)}"
+        )
+
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(data: EmployeeData):
+def predict(data: EmployeeData, db: Session = Depends(get_db)):
+    """
+    Make an attrition prediction from raw input data.
+    Logs the prediction input and output to the database.
+    """
     if MODEL is None or PREPROCESSOR is None:
         raise HTTPException(status_code=503, detail="Model currently unavailable.")
 
@@ -40,14 +138,24 @@ def predict(data: EmployeeData):
         # 1. Convert input data to DataFrame
         input_dict = data.dict()
         input_df = pd.DataFrame([input_dict])
-        
-        # 2. Transform data using the exported preprocessor
+
+        # 2. Transform data using the preprocessor
         X_processed = PREPROCESSOR.transform(input_df)
-        
+
         # 3. Make prediction
         prediction = int(MODEL.predict(X_processed)[0])
         probability = float(MODEL.predict_proba(X_processed)[0][1])
-        
+
+        # 4. Log prediction to database
+        pred_log = Prediction(
+            employee_id=int(input_dict.get("employee_id")) if input_dict.get("employee_id") else None,
+            input_data=json.dumps(input_dict, ensure_ascii=False, default=str),
+            prediction=prediction,
+            probability=probability,
+        )
+        db.add(pred_log)
+        db.commit()
+
         return PredictionResponse(
             prediction=prediction,
             probability=probability,
@@ -55,6 +163,32 @@ def predict(data: EmployeeData):
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Prediction error: {str(e)}")
+
+
+@app.get("/predictions", response_model=list)
+def get_predictions(limit: int = 50, db: Session = Depends(get_db)):
+    """
+    Retrieve recent prediction logs from the database.
+    Provides full traceability of model interactions.
+    """
+    predictions = (
+        db.query(Prediction)
+        .order_by(Prediction.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "id": p.id,
+            "employee_id": p.employee_id,
+            "prediction": p.prediction,
+            "probability": p.probability,
+            "created_at": p.created_at.isoformat(),
+            "input_data": json.loads(p.input_data),
+        }
+        for p in predictions
+    ]
+
 
 if __name__ == "__main__":
     import uvicorn
