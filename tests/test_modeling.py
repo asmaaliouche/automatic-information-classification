@@ -1,8 +1,11 @@
 import os
-import pytest
+
 import pandas as pd
-from src.modeling import split_data, load_model, save_model
+import pytest
 from sklearn.ensemble import RandomForestClassifier
+
+from src.modeling import load_model, save_model, split_data
+
 
 def test_split_data():
     """Test data splitting functionality."""

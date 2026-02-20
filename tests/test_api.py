@@ -5,11 +5,11 @@ Tests database interactions and prediction logging.
 
 import pytest
 from fastapi.testclient import TestClient
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from api.main import MODEL, PREPROCESSOR, app
-from db.database import get_db, Base
+from db.database import Base, get_db
 
 # SQLite for testing (CI friendly)
 engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
