@@ -127,6 +127,24 @@ All interactions with the ML model pass through the database:
 
 ---
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+- [**Technical & Model Report**](docs/TECHNICAL_REPORT.md): Model performance, features, and key predictors.
+- [**API User Guide**](docs/API_DOCUMENTATION.md): Detailed endpoint descriptions and usage examples.
+- [**Database Schema**](docs/database_schema.png): UML representation of the database.
+
+---
+
+## Maintenance & Retraining
+The model should be retrained periodically to avoid performance decay.
+1. Update `data/combined_df.csv` with new validated records.
+2. Re-run `notebooks/notebook_2.ipynb` to generate a new `.joblib` model.
+3. Deploy the new model file to `models/model_pipeline.joblib`.
+See the [Technical Report](docs/TECHNICAL_REPORT.md) for full details.
+
+---
+
 ## Version Control
 This repository uses Git for version control.
 Development follows a feature-based branching strategy to ensure clean history and traceability.
