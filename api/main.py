@@ -1,4 +1,5 @@
 import json
+from contextlib import asynccontextmanager
 
 import pandas as pd
 from fastapi import Depends, FastAPI, HTTPException
@@ -8,8 +9,6 @@ from db.database import get_db
 from db.models import Employee, Prediction
 from src.api_schemas import EmployeeData, PredictionResponse
 from src.modeling import load_model
-
-from contextlib import asynccontextmanager
 
 # Global variables for model storage
 MODEL = None

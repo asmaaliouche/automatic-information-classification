@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from api.main import MODEL, PREPROCESSOR, app
+from api.main import app
 from db.database import Base, get_db
 from db.models import Employee
 

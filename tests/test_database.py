@@ -3,6 +3,7 @@ import json
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from db.database import Base
 from db.models import Employee, Prediction
@@ -10,7 +11,7 @@ from db.models import Employee, Prediction
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-from sqlalchemy.pool import StaticPool
+
 
 @pytest.fixture
 def db_session():
