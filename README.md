@@ -154,7 +154,7 @@ Development follows a feature-based branching strategy to ensure clean history a
 - Tags used for release versioning (e.g. `v1.0.0`).
 
 ## Key Results
-The Logistic Regression model (72% recall) identified Monthly Income, Overtime, and Work-Life Balance as primary attrition drivers.
+The Random Forest Classifier (72% recall) identified Total Working Years, Monthly Income, and Overtime as primary attrition drivers.
 
 ---
 

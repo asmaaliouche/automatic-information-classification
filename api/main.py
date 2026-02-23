@@ -9,11 +9,7 @@ from db.models import Employee, Prediction
 from src.api_schemas import EmployeeData, PredictionResponse
 from src.modeling import load_model
 
-app = FastAPI(
-    title="TechNova Attrition API",
-    description="API exposing a Machine Learning model for employee attrition prediction.",
-    version="1.0.0"
-)
+from contextlib import asynccontextmanager
 
 # Global variables for model storage
 MODEL = None
@@ -21,15 +17,26 @@ PREPROCESSOR = None
 MODEL_PATH = 'models/model_pipeline.joblib'
 
 
-@app.on_event("startup")
-def startup_event():
-    """Load model and preprocessor on startup."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load model and preprocessor on startup, and cleanup resources on shutdown."""
     global MODEL, PREPROCESSOR
     try:
         MODEL, PREPROCESSOR = load_model(MODEL_PATH)
         print("✅ Model loaded successfully.")
     except Exception as e:
         print(f"❌ Error loading model: {e}")
+    yield
+    # No specific cleanup needed for these globals, but handle shutdown if needed
+    print("👋 Shutting down API.")
+
+
+app = FastAPI(
+    title="TechNova Attrition API",
+    description="API exposing a Machine Learning model for employee attrition prediction.",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 
 @app.get("/")
@@ -136,7 +143,7 @@ def predict(data: EmployeeData, db: Session = Depends(get_db)):
 
     try:
         # 1. Convert input data to DataFrame
-        input_dict = data.dict()
+        input_dict = data.model_dump()
         input_df = pd.DataFrame([input_dict])
 
         # 2. Transform data using the preprocessor

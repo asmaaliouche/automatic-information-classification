@@ -10,10 +10,16 @@ from db.models import Employee, Prediction
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
+from sqlalchemy.pool import StaticPool
+
 @pytest.fixture
 def db_session():
     """Fixture to provide a clean in-memory database for each test."""
-    engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, 
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
+    )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
     Base.metadata.create_all(bind=engine)
@@ -23,6 +29,7 @@ def db_session():
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 def test_create_employee(db_session):
     """Test creating an employee in the database."""
