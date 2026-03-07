@@ -75,6 +75,9 @@ def client():
     with TestClient(app) as c:
         yield c
 
+# Test credentials
+HEADERS = {"access_token": "futurisys-token-debug"}
+
 def test_read_main(client):
     """Test the root health check endpoint."""
     response = client.get("/")
@@ -83,18 +86,19 @@ def test_read_main(client):
 
 def test_predict_invalid_data(client):
     """Test that incomplete data returns a 422 validation error."""
-    response = client.post("/predict", json={"age": 30})
+    # Note: validation happens AFTER security check in FastAPI dependencies
+    response = client.post("/predict", json={"age": 30}, headers=HEADERS)
     assert response.status_code == 422
 
 def test_predict_employee_not_found(client):
     """Test that a non-existent employee ID returns a 404."""
-    response = client.get("/predict/999999")
+    response = client.get("/predict/999999", headers=HEADERS)
     assert response.status_code == 404
 
 def test_predict_by_id_success(client, db_session):
     """Test successful prediction by employee ID."""
     # Ensure Employee 1 exists (seeded in db_session fixture)
-    response = client.get("/predict/1")
+    response = client.get("/predict/1", headers=HEADERS)
     assert response.status_code == 200
     data = response.json()
     assert "prediction" in data
@@ -136,13 +140,13 @@ def test_predict_post_success(client):
         "poste": "Cadre Commercial",
         "augementation_salaire_precedente": "11 %",
     }
-    response = client.post("/predict", json=payload)
+    response = client.post("/predict", json=payload, headers=HEADERS)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
 
 def test_get_predictions_log(client, db_session):
     """Test the predictions log endpoint returns a list."""
-    response = client.get("/predictions")
+    response = client.get("/predictions", headers=HEADERS)
     assert response.status_code == 200
     assert isinstance(response.json(), list)
