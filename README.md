@@ -1,3 +1,12 @@
+---
+title: TechNova Attrition API
+emoji: 🏢
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # TechNova Attrition Analysis
 
 ## Overview

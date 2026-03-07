@@ -11,8 +11,6 @@ from db.models import Employee, Prediction
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-
-
 @pytest.fixture
 def db_session():
     """Fixture to provide a clean in-memory database for each test."""

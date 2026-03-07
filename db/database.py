@@ -8,13 +8,16 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Database URL — defaults to local PostgreSQL
+# Database URL — defaults to local PostgreSQL, but supports SQLite for easier POC deployment
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://localhost:5432/technova_attrition"
+    "sqlite:///./data/attrition.db" # Default switched to SQLite for easier development and deployment
 )
 
-engine = create_engine(DATABASE_URL, echo=False)
+# Connect arguments needed for SQLite (multi-threading)
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

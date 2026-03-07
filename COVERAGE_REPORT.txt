@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: /Users/asmaaliouche/OC/project_4
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0
+collected 17 items
+
+tests/test_api.py ......                                                 [ 35%]
+tests/test_database.py ..                                                [ 47%]
+tests/test_modeling.py .....                                             [ 76%]
+tests/test_processing.py .                                               [ 82%]
+tests/test_visualization.py ...                                          [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.2-final-0 _______________
+
+Name                   Stmts   Miss  Cover   Missing
+----------------------------------------------------
+api/__init__.py            0      0   100%
+api/main.py               88     18    80%   26-27, 53-54, 64-70, 80, 128-129, 141, 170-171, 200-201
+src/__init__.py            0      0   100%
+src/api_schemas.py         5      0   100%
+src/modeling.py           36      0   100%
+src/processing.py         13      4    69%   52-69
+src/visualization.py      38     12    68%   56-67, 73-82
+----------------------------------------------------
+TOTAL                    180     34    81%
+============================== 17 passed in 2.25s ==============================

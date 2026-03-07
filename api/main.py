@@ -1,11 +1,13 @@
 import json
 from contextlib import asynccontextmanager
 
+import os
 import pandas as pd
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security, status
+from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy.orm import Session
 
-from db.database import get_db
+from db.database import Base, engine, get_db
 from db.models import Employee, Prediction
 from src.api_schemas import EmployeeData, PredictionResponse
 from src.modeling import load_model
@@ -15,12 +17,31 @@ MODEL = None
 PREPROCESSOR = None
 MODEL_PATH = 'models/model_pipeline.joblib'
 
+# Security configuration
+API_KEY_NAME = "access_token"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+def get_api_key(api_key: str = Security(api_key_header)):
+    """Check if the provided API key is valid."""
+    expected_key = os.getenv("API_TOKEN", "futurisys-token-debug")
+    if api_key == expected_key:
+        return api_key
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Could not validate credentials. Please provide a valid access_token header.",
+    )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load model and preprocessor on startup, and cleanup resources on shutdown."""
+    """Load model and preprocessor on startup, create tables, and cleanup resources on shutdown."""
     global MODEL, PREPROCESSOR
     try:
+        # 1. Create tables if they don't exist (crucial for Docker/HF deployments)
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables confirmed/created.")
+
+        # 2. Load the ML model
         MODEL, PREPROCESSOR = load_model(MODEL_PATH)
         print("✅ Model loaded successfully.")
     except Exception as e:
@@ -71,7 +92,11 @@ def read_root(db: Session = Depends(get_db)):
 
 
 @app.get("/predict/{employee_id}", response_model=PredictionResponse)
-def predict_by_id(employee_id: int, db: Session = Depends(get_db)):
+def predict_by_id(
+    employee_id: int, 
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+):
     """
     Make an attrition prediction for a single employee by their ID.
     Reads the employee from the database and logs the prediction.
@@ -132,7 +157,11 @@ def predict_by_id(employee_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(data: EmployeeData, db: Session = Depends(get_db)):
+def predict(
+    data: EmployeeData, 
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+):
     """
     Make an attrition prediction from raw input data.
     Logs the prediction input and output to the database.
@@ -172,7 +201,11 @@ def predict(data: EmployeeData, db: Session = Depends(get_db)):
 
 
 @app.get("/predictions", response_model=list)
-def get_predictions(limit: int = 50, db: Session = Depends(get_db)):
+def get_predictions(
+    limit: int = 50, 
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+):
     """
     Retrieve recent prediction logs from the database.
     Provides full traceability of model interactions.
